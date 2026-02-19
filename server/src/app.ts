@@ -2,9 +2,10 @@ import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import rateLimit from "express-rate-limit";
+import { rateLimit } from "express-rate-limit";
 import { validationResult } from "express-validator";
-import { authRoutes, horseRoutes ,adminRoutes , chatRoutes} from "./routes/index.js";
+import { authRoutes, horseRoutes, adminRoutes, chatRoutes, databaseRoutes} from "./routes/index";
+
 
 const app: Application = express();
 
@@ -65,6 +66,7 @@ app.get("/health", (_req, res) => {
   res.json({ success: true, message: "Horse Portal API is running", env: process.env.NODE_ENV });
 });
 
+app.use("/health/db",   databaseRoutes); //  Database
 // ── Routes ────────────────────────────────────────────────────
 app.use("/api/auth",   authLimiter, authRoutes);
 app.use("/api/horses", horseRoutes);
@@ -81,5 +83,6 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error("Unhandled error:", err.message);
   res.status(500).json({ success: false, message: "Internal server error" });
 });
+
 
 export default app;
