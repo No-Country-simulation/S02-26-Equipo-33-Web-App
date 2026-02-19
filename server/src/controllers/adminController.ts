@@ -1,9 +1,9 @@
 import { Response } from "express";
 import { Types } from "mongoose";
-import { User } from "../models/User.js";
-import { Horse } from "../models/Horse.js";
-import { VetRecord } from "../models/VetRecord.js";
-import { AuthRequest } from "../types/index.js";
+import { User } from "../models/User";
+import { Horse } from "../models/Horse";
+import { VetRecord } from "../models/VetRecord";
+import { AuthRequest } from "../types/index";
 // import { AuthRequest } from "../types.js";
 
 // ── GET /api/admin/sellers/pending ────────────────────────────

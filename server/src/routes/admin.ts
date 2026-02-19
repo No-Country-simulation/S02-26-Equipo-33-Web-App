@@ -3,8 +3,8 @@ import {
   getPendingSellers, verifySeller,
   getPendingVetRecords, validateVetRecord,
   getDashboard, adminDeleteHorse
-} from "../controllers/adminController.js";
-import { authenticate, requireAdmin } from "../middleware/auth.js";
+} from "../controllers/adminController";
+import { authenticate, requireAdmin } from "../middleware/auth";
 
 const router = Router();
 
