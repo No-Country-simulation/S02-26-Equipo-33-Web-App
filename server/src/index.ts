@@ -2,9 +2,9 @@ import "dotenv/config";
 import http from "http";
 import { Server as SocketServer, Socket } from "socket.io";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import app from "./app.js";
-import connectDB from "./config/db.js";
-import { Conversation, Message } from "./models/VetRecord.js";
+import app from "./app";
+import connectDB from "./config/db";
+import { Conversation, Message } from "./models/VetRecord";
 
 const PORT = process.env.PORT || 3000;
 
@@ -140,3 +140,5 @@ const start = async () => {
 };
 
 start();
+
+// Ok
