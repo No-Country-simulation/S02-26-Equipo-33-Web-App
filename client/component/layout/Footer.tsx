@@ -1,21 +1,33 @@
 import Link from 'next/link';
-import { Shield, Globe, Instagram } from 'lucide-react';
+import Image from 'next/image';
+import { Globe, Instagram } from 'lucide-react';
 
 export default function Footer() {
   return (
     <footer className="bg-white dark:bg-equestrian-navy border-t border-slate-200 dark:border-slate-800 pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-12 mb-20">
         
-        {/* Logo y Descripción */}
+       {/* Logo y Descripción */}
         <div className="col-span-2">
-          <div className="flex items-center gap-2 mb-8">
-            <div className="text-equestrian-gold">
-              <Shield className="w-6 h-6" />
-            </div>
-            <span className="text-xl font-black tracking-tight text-equestrian-navy dark:text-white uppercase font-display">
-              HorseTrust
-            </span>
+          {/* Bloque del Logo modificado */}
+          <div className="mb-8">
+            <Link href="/" className="flex items-center gap-3 group">
+              {/* 1. El Ícono solo */}
+              <Image 
+                src="/img/logo-icon.png" // <-- Asegurate de que este archivo exista
+                alt="HorseTrust Escudo" 
+                width={48} // Un tamaño cuadradito para el ícono
+                height={48} 
+                className="object-contain group-hover:scale-105 transition-transform"
+              />
+              {/* 2. El Texto escrito en código con la misma tipografía */}
+              <span className="text-2xl font-semibold tracking-tight text-equestrian-navy dark:text-white font-display">
+                HorseTrust
+              </span>
+            </Link>
           </div>
+          {/* Fin del bloque del logo */}
+
           <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs leading-relaxed mb-8 italic">
             El destino digital más confiable del mundo para adquisiciones ecuestres de alto valor.
           </p>
