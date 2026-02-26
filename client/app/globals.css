@@ -45,3 +45,39 @@ body {
 .luxury-card-hover:hover {
   @apply -translate-y-2 shadow-[0_20px_50px_rgba(0,0,0,0.1)];
 }
+
+/* Estilización del Scrollbar Global */
+@layer base {
+  html {
+    scroll-behavior: smooth ;
+  }
+
+  /* Para Chrome, Safari y Edge */
+  ::-webkit-scrollbar {
+    width: 8px ;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9 ; /* fondo claro */
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    background: var(--color-equestrian-navy) ; 
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b; 
+    border-radius: 20px ;
+    border: 2px solid #f1f5f9;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: var(--color-equestrian-gold); 
+    border: 2px solid var(--color-background-dark);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-equestrian-gold);
+  }
+}
