@@ -1,32 +1,29 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import "tailwindcss";
 
-/* Configuración de Tailwind v4 */
 @theme {
-  /* Colores personalizados */
-  --color-primary: #135bec;
-  --color-background-light: #f8f9fa;
+  --color-equestrian-green: #14532d; /* Verde bosque oscuro */
+  --color-equestrian-navy: #0f172a;  /* Azul marino profundo casi negro */
+  --color-equestrian-gold: #C5A059;  /* Dorado lujo para detalles y botones */
+  --color-equestrian-sand: #fdfbf7;  /* Blanco hueso/arena para fondos */
+  
+  --color-background-light: #fdfbf7;
   --color-background-dark: #0f172a;
-  --color-equestrian-navy: #1a202c;
-  --color-equestrian-green: #2f855a;
-  --color-equestrian-gold: #b7914d;
-  --color-luxury-gold: #C5A059;
 
-  /* Fuentes personalizadas */
+  /* Tipografías */
   --font-display: "Public Sans", sans-serif;
   --font-serif: "Playfair Display", serif;
 }
 
-/* Colores por defecto del proyecto original */
 :root {
-  --background: #ffffff;
-  --foreground: #010847;
+  --background: var(--color-equestrian-sand);
+  --foreground: var(--color-equestrian-navy);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #010847;
-    --foreground: #ededed;
+    --background: var(--color-equestrian-navy);
+    --foreground: #f8f9fa;
   }
 }
 
@@ -36,9 +33,9 @@ body {
   font-family: var(--font-display);
 }
 
-/* Clases especiales para la Landing Page */
+/* Utilidades para la Landing */
 .hero-gradient {
-  background: linear-gradient(rgba(26, 32, 44, 0.6) 0%, rgba(26, 32, 44, 0.8) 100%);
+  background: linear-gradient(rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
 }
 
 .luxury-card-hover {
