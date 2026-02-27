@@ -1,12 +1,19 @@
-GetServerData
+import Header from '@/component/layout/Header';
+import HeroSection from '@/component/home/HeroSection';
+import FeaturedHorses from '@/component/home/FeaturedHorses';
+import SecuritySection from '@/component/home/SecuritySection';
+import Footer from '@/component/layout/Footer';
 
-import GetServerData from "@/component/GetServerData";
-
-
-export default function Home() {
+export default function LandingPage() {
   return (
-    <div>
-      <GetServerData />
+    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display min-h-screen">
+      <Header />
+      <main>
+        <HeroSection />
+        <FeaturedHorses />
+        <SecuritySection />
+      </main>
+      <Footer />
     </div>
   );
 }

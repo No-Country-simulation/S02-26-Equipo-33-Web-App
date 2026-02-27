@@ -1,26 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #010847;
+@theme {
+  --color-equestrian-green: #14532d; /* Verde bosque oscuro */
+  --color-equestrian-navy: #0f172a;  /* Azul marino profundo casi negro */
+  --color-equestrian-gold: #C5A059;  /* Dorado lujo para detalles y botones */
+  --color-equestrian-sand: #fdfbf7;  /* Blanco hueso/arena para fondos */
+  
+  --color-background-light: #fdfbf7;
+  --color-background-dark: #0f172a;
+
+  /* Tipografías */
+  --font-display: "Public Sans", sans-serif;
+  --font-serif: "Playfair Display", serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --background: var(--color-equestrian-sand);
+  --foreground: var(--color-equestrian-navy);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #010847;
-    --foreground: #ededed;
+    --background: var(--color-equestrian-navy);
+    --foreground: #f8f9fa;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-display);
+}
+
+/* Utilidades para la Landing */
+.hero-gradient {
+  background: linear-gradient(rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+}
+
+.luxury-card-hover {
+  @apply transition-all duration-500 ease-out;
+}
+
+.luxury-card-hover:hover {
+  @apply -translate-y-2 shadow-[0_20px_50px_rgba(0,0,0,0.1)];
+}
+
+/* Estilización del Scrollbar Global */
+@layer base {
+  html {
+    scroll-behavior: smooth ;
+  }
+
+  /* Para Chrome, Safari y Edge */
+  ::-webkit-scrollbar {
+    width: 8px ;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9 ; /* fondo claro */
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    background: var(--color-equestrian-navy) ; 
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b; 
+    border-radius: 20px ;
+    border: 2px solid #f1f5f9;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: var(--color-equestrian-gold); 
+    border: 2px solid var(--color-background-dark);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-equestrian-gold);
+  }
 }
