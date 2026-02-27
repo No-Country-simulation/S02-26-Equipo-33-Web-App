@@ -2,7 +2,6 @@
 
 import { ChevronDown, MapPin, Verified } from 'lucide-react';
 
-// Definimos qué "props" recibe este componente
 interface FilterProps {
   filters: {
     minPrice: string;
