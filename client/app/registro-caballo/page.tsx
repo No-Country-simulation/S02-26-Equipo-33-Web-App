@@ -36,6 +36,9 @@ export default function RegistroCaballoPage() {
     country: '',
     region: '',
     videoUrl: '',
+    videoType: 'training',
+    videoTitle: '',
+    videoDate: '',
   });
 
   const [photos, setPhotos] = useState<File[]>([]);
@@ -110,7 +113,9 @@ export default function RegistroCaballoPage() {
         })),
         videos: formData.videoUrl ? [{
           url: formData.videoUrl,
-          video_type: "other"
+          video_type: formData.videoType,
+          title: formData.videoTitle,
+          recorded_at: formData.videoDate ? new Date(formData.videoDate).toISOString() : new Date().toISOString() 
         }] : []
       };
 
@@ -269,16 +274,42 @@ export default function RegistroCaballoPage() {
                         </div>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Enlace de Video (Opcional)</label>
-                    <div className="relative">
-                      <Video className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                      <input 
-                        name="videoUrl"
-                        value={formData.videoUrl}
-                        onChange={handleChange} 
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-4 py-3 text-sm focus:border-equestrian-navy focus:ring-1 focus:ring-equestrian-navy outline-none transition-all" 
-                        placeholder="Ej. https://youtube.com/watch?v=..." />
+                  
+                  {/* Enlace de Video (Opcional) */}
+                  <div className="space-y-4 border border-slate-200 p-5 rounded-xl bg-slate-50/50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Video className="w-5 h-5 text-slate-400" />
+                      <h4 className="text-sm font-bold text-slate-700">Video Promocional (Opcional)</h4>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">URL del Video (YouTube/Vimeo)</label>
+                        <input name="videoUrl" value={formData.videoUrl} onChange={handleChange} className="w-full mt-1 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm focus:border-equestrian-navy focus:ring-1 focus:ring-equestrian-navy outline-none transition-all" placeholder="Ej. https://youtube.com/watch?v=..." />
+                      </div>
+                      
+                      {/* Se despliega solo si hay una URL */}
+                      {formData.videoUrl && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-200">
+                          <div>
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Tipo de Video</label>
+                            <select name="videoType" value={formData.videoType} onChange={handleChange} className="w-full mt-1 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm focus:border-equestrian-navy outline-none transition-all cursor-pointer">
+                              <option value="training">Entrenamiento</option>
+                              <option value="competition">Competición</option>
+                              <option value="other">Otro</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Título</label>
+                            <input name="videoTitle" value={formData.videoTitle} onChange={handleChange} className="w-full mt-1 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm focus:border-equestrian-navy outline-none transition-all" placeholder="Ej. Salto libre 1.20m" />
+                          </div>
+                          <div>
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Fecha de Grabación</label>
+                            {/* obligatorio solo si hay URL */}
+                            <input type="date" name="videoDate" value={formData.videoDate} onChange={handleChange} required={!!formData.videoUrl} className="w-full mt-1 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm focus:border-equestrian-navy outline-none transition-all" />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
