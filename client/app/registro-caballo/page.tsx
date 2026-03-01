@@ -3,9 +3,29 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Check, ImagePlus, Info, MapPin, Video, ShieldCheck } from 'lucide-react';
-import HorseCard from '@/component/marketplace/HorseCard'; 
+import HorseCard from '@/component/marketplace/HorseCard';
+
+const uploadToCloudinary = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', 'horse_trust_uploads'); 
+  formData.append('cloud_name', 'di2agiylz');
+
+  try {
+    const res = await fetch('https://api.cloudinary.com/v1_1/di2agiylz/image/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json();
+    return data.secure_url; 
+  } catch (error) {
+    console.error('Error subiendo imagen a Cloudinary:', error);
+    return null;
+  }
+};
 
 export default function RegistroCaballoPage() {
+  // ESTADOS DEL FORMULARIO
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -15,21 +35,23 @@ export default function RegistroCaballoPage() {
     currency: 'USD',
     country: '',
     region: '',
+    videoUrl: '',
   });
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false); // <-- ESTADO ARREGLADO (ARRIBA DE TODO)
 
   // INICIAL LIVE PREVIEW
   const previewHorse = {
-    ID: 999, // ID temporal
+    ID: 999,
     NAME: formData.name || 'Nombre del Ejemplar',
     AGE: Number(formData.age) || 0,
     BREED: formData.breed,
     DISCIPLINE: formData.discipline,
     LOCATION: formData.region && formData.country ? `${formData.region}, ${formData.country}` : 'Ubicación',
     PRICE: Number(formData.price) || 0,
-    SELLER_VERIFIED: 'verified', // Simulamos que es verificado para la preview
+    SELLER_VERIFIED: 'verified', 
     MAIN_PHOTO: previewUrls.length > 0 ? previewUrls[0] : 'https://images.unsplash.com/photo-1598974357801-cbca100e65d3?q=80&w=800'
   };
 
@@ -41,23 +63,73 @@ export default function RegistroCaballoPage() {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
       setPhotos((prev) => [...prev, ...selectedFiles]);
-
-      // Generamos URLs temporales para que el navegador las pueda mostrar al instante
       const newPreviews = selectedFiles.map(file => URL.createObjectURL(file));
       setPreviewUrls((prev) => [...prev, ...newPreviews]);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Datos a enviar:", formData);
-    alert("¡Maqueta lista! El lunes conectamos esto a la base de datos.");
+
+    if (photos.length < 3) {
+      alert("Por favor, subí al menos 3 fotos del ejemplar (requisito del sistema).");
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      console.log("Subiendo imágenes a Cloudinary...");
+      const uploadedUrls: string[] = [];
+      
+      for (const file of photos) {
+        const url = await uploadToCloudinary(file);
+        if (url) uploadedUrls.push(url);
+      }
+
+      if (uploadedUrls.length < 3) {
+        throw new Error("Falló la subida de algunas imágenes. Intentá de nuevo.");
+      }
+
+      console.log(" Imágenes listas. Armando paquete de datos...");
+      
+      const finalHorseData = {
+        name: formData.name,
+        age: Number(formData.age),
+        breed: formData.breed,
+        discipline: formData.discipline,
+        price: Number(formData.price),
+        currency: formData.currency,
+        location: {
+          country: formData.country,
+          region: formData.region,
+        },
+        photos: uploadedUrls.map((link, index) => ({
+          url: link,
+          is_cover: index === 0 
+        })),
+        videos: formData.videoUrl ? [{
+          url: formData.videoUrl,
+          video_type: "other"
+        }] : []
+      };
+
+      
+      console.log("¡Datos listos para enviar a la API!", finalHorseData);
+      alert("¡Simulación exitosa! Las fotos se subieron a Cloudinary y el JSON está listo. Revisá la consola.");
+
+      // fetch('.../api/horses', { method: 'POST', body: finalHorseData })
+
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <main className="min-h-screen bg-equestrian-sand flex flex-col font-sans">
       
-      {/* Topbar Simplificada */}
       <header className=" w-full  border-slate-200 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-[1440px] items-center px-6 lg:px-12">
           <Link href="/marketplace" className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-equestrian-navy transition-colors">
@@ -156,7 +228,7 @@ export default function RegistroCaballoPage() {
                 </div>
               </section>
 
-              {/* Sección 3: Multimedia (Visual por ahora) */}
+              {/* Sección 3: Multimedia */}
               <section className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
                 <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
                   <div className="bg-equestrian-navy/10 p-2 rounded-lg text-equestrian-navy">
@@ -201,7 +273,12 @@ export default function RegistroCaballoPage() {
                     <label className="text-xs font-black uppercase tracking-widest text-slate-500">Enlace de Video (Opcional)</label>
                     <div className="relative">
                       <Video className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                      <input className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-4 py-3 text-sm focus:border-equestrian-navy focus:ring-1 focus:ring-equestrian-navy outline-none transition-all" placeholder="Ej. https://youtube.com/watch?v=..." />
+                      <input 
+                        name="videoUrl"
+                        value={formData.videoUrl}
+                        onChange={handleChange} 
+                        className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-4 py-3 text-sm focus:border-equestrian-navy focus:ring-1 focus:ring-equestrian-navy outline-none transition-all" 
+                        placeholder="Ej. https://youtube.com/watch?v=..." />
                     </div>
                   </div>
                 </div>
@@ -212,8 +289,12 @@ export default function RegistroCaballoPage() {
                 <Link href="/marketplace" className="px-6 py-3 rounded-lg text-slate-500 font-bold hover:bg-slate-100 transition-colors text-sm">
                   Cancelar
                 </Link>
-                <button type="submit" className="flex items-center gap-2 px-8 py-3 rounded-lg bg-equestrian-navy hover:bg-equestrian-navy/90 text-white font-bold transition-all text-sm uppercase tracking-wider">
-                  <Check className="w-4 h-4" /> Publicar Caballo
+                <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="flex items-center gap-2 px-8 py-3 rounded-lg bg-equestrian-navy hover:bg-equestrian-navy/90 text-white font-bold transition-all text-sm uppercase tracking-wider disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                    <Check className="w-4 h-4" /> {isSubmitting ? 'Subiendo...' : 'Publicar Caballo'}
                 </button>
               </div>
 
