@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { loginUser } from '@/app/actions/auth'; 
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -12,38 +13,24 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null); 
   const router = useRouter();
 
- const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null); 
 
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      
-      const res = await fetch(`${apiUrl}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+   
+    const response = await loginUser(email, password);
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || data.message || 'Error al validar credenciales');
-      }
-
-      localStorage.setItem('horse_trust_token', data.token);
-      localStorage.setItem('horse_trust_user', JSON.stringify(data.user));
-
-      router.push('/dashboard');
-
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
+    if (!response.success) {
+      setError(response.error);
       setIsLoading(false);
+      return;
     }
+
+    localStorage.setItem('horse_trust_token', response.data.token);
+    localStorage.setItem('horse_trust_user', JSON.stringify(response.data.user));
+
+    router.push('/dashboard');
   };
 
   return (
