@@ -1,4 +1,5 @@
 "use server"; 
+import { cookies } from 'next/headers';
 
 export async function loginUser(email: string, password: string) {
   try {
@@ -17,6 +18,13 @@ export async function loginUser(email: string, password: string) {
     if (!res.ok) {
       throw new Error(data.error || data.message || 'Error al validar credenciales');
     }
+    const cookieStore = await cookies();
+    cookieStore.set('horse_trust_token', data.token, { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7, 
+      path: '/',
+    });
 
     return { success: true, data };
   } catch (error: any) {
@@ -49,6 +57,14 @@ export async function registerUser(userData: any) {
     if (!res.ok) {
       throw new Error(data.message || data.error || 'Error al registrar el usuario');
     }
+
+    const cookieStore = await cookies();
+    cookieStore.set('horse_trust_token', data.token, { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7, 
+      path: '/',
+    });
 
     return { success: true, data };
   } catch (error: any) {
