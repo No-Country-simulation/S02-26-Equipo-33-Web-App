@@ -12,15 +12,15 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null); 
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
+ const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null); // Limpiamos errores anteriores
+    setError(null); 
 
     try {
-      const baseUrl = 'https://s02-26-e33-horse-trust-api.vercel.app';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       
-      const res = await fetch(`${baseUrl}/api/auth/login`, {
+      const res = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,8 +37,7 @@ export default function LoginPage() {
       localStorage.setItem('horse_trust_token', data.token);
       localStorage.setItem('horse_trust_user', JSON.stringify(data.user));
 
-      // por ahora redirigimos al formulario de registro de caballos
-      router.push('/registro-caballo');
+      router.push('/dashboard');
 
     } catch (err: any) {
       setError(err.message);
@@ -50,7 +49,7 @@ export default function LoginPage() {
   return (
     <div className="flex w-full min-h-screen font-sans bg-equestrian-sand">
       
-      {/* Lado Izquierdo: Imagen Premium (Oculto en celulares) */}
+      {/* Lado Izquierdo: Imagen (Oculto en celulares) */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-equestrian-navy">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
