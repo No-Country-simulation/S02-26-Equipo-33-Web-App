@@ -4,7 +4,9 @@ export const dynamic = 'force-dynamic';
 
 async function getHorses() {
   try {
-    const res = await fetch('https://s02-26-e33-horse-trust-api.vercel.app/api/horses', {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    
+    const res = await fetch(`${apiUrl}/horses`, {
       next: { revalidate: 60 } 
     });
 
