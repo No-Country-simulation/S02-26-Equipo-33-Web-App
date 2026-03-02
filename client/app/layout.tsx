@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Header from "@/component/layout/Header";
+import Footer from "@/component/layout/Footer";
 
 export const metadata: Metadata = {
   title: "HorseTrust | Mercado de Caballos de Élite Verificados",
@@ -14,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <Header/>
         {children}
+        <Footer/>
       </body>
     </html>
   );

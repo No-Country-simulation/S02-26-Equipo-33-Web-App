@@ -7,13 +7,11 @@ import Footer from '@/component/layout/Footer';
 export default function LandingPage() {
   return (
     <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display min-h-screen">
-      <Header />
       <main>
         <HeroSection />
         <FeaturedHorses />
         <SecuritySection />
       </main>
-      <Footer />
     </div>
   );
 }
