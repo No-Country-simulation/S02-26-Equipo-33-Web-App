@@ -66,16 +66,35 @@ export default function RegistroPage() {
     setError(null);
 
     try {
-      // Simulación: Creamos el usuario (Mañana usamos /api/auth/register)
-      console.log("Registrando usuario:", { ...formData, role: 'seller' });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       
-      //  Simulación: Lo logueamos automáticamente para obtener el token
-      // localStorage.setItem('horse_trust_token', 'token_simulado');
+      const res = await fetch(`${apiUrl}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          full_name: formData.full_name,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+          role: 'seller' 
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Error al crear la cuenta");
+      }
+
+      console.log("¡Usuario registrado con éxito!", data.user);
       
-      //  verificación
+      localStorage.setItem('horse_trust_token', data.token);
+      
       setStep(2);
     } catch (err: any) {
-      setError(err.message || "Error al crear la cuenta");
+      setError(err.message || "Error al conectarse con el servidor");
     } finally {
       setIsLoading(false);
     }
@@ -96,18 +115,34 @@ export default function RegistroPage() {
       console.log("Subiendo selfie a Cloudinary...");
       const selfieUrl = await uploadToCloudinary(selfieFile);
       
-      if (!selfieUrl) throw new Error("Error al subir la imagen");
+      if (!selfieUrl) throw new Error("Error al subir la imagen a Cloudinary");
 
-      const verificationData = {
-        identity_document: identityDocument,
-        selfie_url: selfieUrl
-      };
+      const token = localStorage.getItem('horse_trust_token');
+      if (!token) throw new Error("No hay sesión activa para verificar la cuenta");
 
-      console.log("Datos listos para PUT /api/auth/seller-profile:", verificationData);
-      
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+      const res = await fetch(`${apiUrl}/auth/seller-profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({
+          identity_document: identityDocument,
+          selfie_url: selfieUrl
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Error al actualizar el perfil de vendedor");
+      }
+
+      console.log("¡Perfil verificado!", data.user);
       alert("¡Cuenta creada y perfil enviado a verificación con éxito!");
-      router.push('/marketplace'); 
-
+      router.push('/dashboard'); 
     } catch (err: any) {
       setError(err.message || "Error en la verificación");
     } finally {
