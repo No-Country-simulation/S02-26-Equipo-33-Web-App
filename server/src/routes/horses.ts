@@ -2,8 +2,8 @@ import { Router } from "express";
 import {
   listHorses, getHorse, createHorse, updateHorse,
   deleteHorse, myListings, addVetRecord, getVetRecords
-} from "../controllers/horseController.js";
-import { authenticate, requireSeller, optionalAuth } from "../middleware/auth.js";
+} from "../controllers/horseController";
+import { authenticate, requireSeller, optionalAuth } from "../middleware/auth";
 
 const router = Router();
 

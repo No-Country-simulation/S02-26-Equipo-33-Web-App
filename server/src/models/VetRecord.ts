@@ -1,6 +1,6 @@
 // ── VetRecord Model ───────────────────────────────────────────
 import { Schema, model } from "mongoose";
-import { IConversation, IMessage, IVetRecord } from "../types/index.js";
+import { IConversation, IMessage, IVetRecord } from "../types/index";
 
 const vaccineSchema = new Schema(
   {

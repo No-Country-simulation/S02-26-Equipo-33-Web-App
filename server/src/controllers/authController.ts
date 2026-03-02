@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { User } from "../models/User.js";
-import { AuthRequest } from "../types/index.js";
+import { User } from "../models/User";
+import { AuthRequest } from "../types/index";
 
 // ── Helper: sign JWT ──────────────────────────────────────────
 const signToken = (userId: string, role: string): string =>

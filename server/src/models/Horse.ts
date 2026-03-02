@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IHorse } from "../types/index.js";
+import { IHorse } from "../types/index";
 
 const photoSchema = new Schema(
   {

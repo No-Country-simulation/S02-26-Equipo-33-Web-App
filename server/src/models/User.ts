@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcryptjs";
-import { IUser } from "../types/index.js";
+import { IUser } from "../types/index";
 
 const sellerProfileSchema = new Schema(
   {

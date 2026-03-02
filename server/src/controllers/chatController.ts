@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { Types } from "mongoose";
-import { AuthRequest } from "../types/index.js";
-import { Conversation, Message} from "../models/VetRecord.js";
+import { AuthRequest } from "../types/index";
+import { Conversation, Message} from "../models/VetRecord";
 
 // ── POST /api/chat/conversations ──────────────────────────────
 // Start or retrieve a conversation between current user and another user

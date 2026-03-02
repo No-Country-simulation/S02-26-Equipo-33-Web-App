@@ -5,8 +5,8 @@ import {
   getMessages,
   sendMessage,
   getUnreadCount,
-} from "../controllers/chatController.js";
-import { authenticate } from "../middleware/auth.js";
+} from "../controllers/chatController";
+import { authenticate } from "../middleware/auth";
 
 const router = Router();
 
