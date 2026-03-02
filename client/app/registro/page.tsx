@@ -1,5 +1,4 @@
 "use client";
-
 import Image from 'next/image';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -8,6 +7,7 @@ import {
   User, Mail, Phone, Lock, ArrowRight, ShieldCheck, 
   CheckCircle, Camera, CreditCard, Loader2
 } from 'lucide-react';
+import { registerUser, verifySellerProfile, loginUser } from '@/app/actions/auth';
 
 const uploadToCloudinary = async (file: File) => {
   const formData = new FormData();
@@ -59,38 +59,37 @@ export default function RegistroPage() {
     }
   };
 
-  // --- SUBMIT PASO 1: CREAR CUENTA ---
+  // --- SUBMIT PASO 1  ---
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      
-      const res = await fetch(`${apiUrl}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          full_name: formData.full_name,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password,
-          role: 'seller' 
-        }),
+      // 1. Creamos la cuenta
+      const response = await registerUser({
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        role: 'seller' 
       });
 
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || "Error al crear la cuenta");
+      if (!response.success) {
+        throw new Error(response.error);
       }
 
-      console.log("¡Usuario registrado con éxito!", data.user);
+      console.log("¡Usuario registrado con éxito!", response.data);
       
-      localStorage.setItem('horse_trust_token', data.token);
+      // 2. AUTO-LOGIN
+      console.log("Iniciando sesión automáticamente...");
+      const loginResponse = await loginUser(formData.email, formData.password);
+      
+      if (loginResponse.success && loginResponse.data.token) {
+         localStorage.setItem('horse_trust_token', loginResponse.data.token);
+         localStorage.setItem('horse_trust_user', JSON.stringify(loginResponse.data.user));
+         console.log("¡Auto-login exitoso!");
+      }
       
       setStep(2);
     } catch (err: any) {
@@ -99,7 +98,6 @@ export default function RegistroPage() {
       setIsLoading(false);
     }
   };
-
   // --- SUBMIT PASO 2: VERIFICAR IDENTIDAD ---
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,29 +116,22 @@ export default function RegistroPage() {
       if (!selfieUrl) throw new Error("Error al subir la imagen a Cloudinary");
 
       const token = localStorage.getItem('horse_trust_token');
-      if (!token) throw new Error("No hay sesión activa para verificar la cuenta");
-
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-      const res = await fetch(`${apiUrl}/auth/seller-profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({
-          identity_document: identityDocument,
-          selfie_url: selfieUrl
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || "Error al actualizar el perfil de vendedor");
+      if (!token) {
+        alert("Cuenta creada. Para subir el DNI, por favor iniciá sesión primero desde la página de Login.");
+        router.push('/login');
+        return;
       }
 
-      console.log("¡Perfil verificado!", data.user);
+      const response = await verifySellerProfile(token, {
+        identity_document: identityDocument,
+        selfie_url: selfieUrl
+      });
+
+      if (!response.success) {
+         throw new Error(response.error);
+      }
+
+      console.log("¡Perfil verificado!", response.data);
       alert("¡Cuenta creada y perfil enviado a verificación con éxito!");
       router.push('/dashboard'); 
     } catch (err: any) {
