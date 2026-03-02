@@ -74,6 +74,12 @@ export default function RegistroCaballoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const token = localStorage.getItem('horse_trust_token');
+    if (!token) {
+      alert("Debes iniciar sesión para publicar un ejemplar.");
+      return;
+    }
+
     if (photos.length < 3) {
       alert("Por favor, subí al menos 3 fotos del ejemplar (requisito del sistema).");
       return;
@@ -82,20 +88,16 @@ export default function RegistroCaballoPage() {
     setIsSubmitting(true);
     
     try {
-      console.log("Subiendo imágenes a Cloudinary...");
       const uploadedUrls: string[] = [];
-      
       for (const file of photos) {
         const url = await uploadToCloudinary(file);
         if (url) uploadedUrls.push(url);
       }
 
       if (uploadedUrls.length < 3) {
-        throw new Error("Falló la subida de algunas imágenes. Intentá de nuevo.");
+        throw new Error("Falló la subida de algunas imágenes. Se requieren al menos 3.");
       }
 
-      console.log(" Imágenes listas. Armando paquete de datos...");
-      
       const finalHorseData = {
         name: formData.name,
         age: Number(formData.age),
@@ -114,16 +116,32 @@ export default function RegistroCaballoPage() {
         videos: formData.videoUrl ? [{
           url: formData.videoUrl,
           video_type: formData.videoType,
-          title: formData.videoTitle,
+          title: formData.videoTitle || `Video de ${formData.name}`,
           recorded_at: formData.videoDate ? new Date(formData.videoDate).toISOString() : new Date().toISOString() 
         }] : []
       };
 
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       
-      console.log("¡Datos listos para enviar a la API!", finalHorseData);
-      alert("¡Simulación exitosa! Las fotos se subieron a Cloudinary y el JSON está listo. Revisá la consola.");
+      const res = await fetch(`${apiUrl}/horses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify(finalHorseData),
+      });
 
-      // fetch('.../api/horses', { method: 'POST', body: finalHorseData })
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Error al publicar el caballo");
+      }
+
+      console.log("¡Caballo publicado!", data);
+      alert("¡Ejemplar publicado con éxito!");
+      
+      window.location.href = '/marketplace';
 
     } catch (error: any) {
       alert(error.message);
