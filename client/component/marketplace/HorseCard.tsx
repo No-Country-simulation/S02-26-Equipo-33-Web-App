@@ -63,7 +63,7 @@ export default function HorseCard({ horse }: HorseProps) {
         {/* Botón de Acción */}
         <Link 
           href={`/marketplace/${horse.ID}`}
-          className="w-full bg-equestrian-navy/5 text-equestrian-navy font-bold py-2.5 rounded-lg hover:bg-equestrian-navy hover:text-white transition-colors"
+          className="mt-4 w-full block text-center bg-equestrian-navy text-white font-bold py-2 px-4 rounded hover:bg-equestrian-navy/90 transition-colors"
         >
           Ver Detalles
         </Link>
