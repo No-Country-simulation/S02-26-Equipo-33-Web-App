@@ -1,4 +1,5 @@
-import { MapPin, Heart, ShieldCheck } from 'lucide-react';
+import { MapPin, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
 
 interface HorseProps {
   horse: {
@@ -60,9 +61,12 @@ export default function HorseCard({ horse }: HorseProps) {
         </div>
         
         {/* Botón de Acción */}
-        <button className="w-full bg-equestrian-navy/5 text-equestrian-navy font-bold py-2.5 rounded-lg hover:bg-equestrian-navy hover:text-white transition-colors">
+        <Link 
+          href={`/marketplace/${horse.ID}`}
+          className="w-full bg-equestrian-navy/5 text-equestrian-navy font-bold py-2.5 rounded-lg hover:bg-equestrian-navy hover:text-white transition-colors"
+        >
           Ver Detalles
-        </button>
+        </Link>
       </div>
     </div>
   );
