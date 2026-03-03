@@ -36,3 +36,39 @@ export async function createHorse(horseData: any) {
     return { success: false, error: "Error interno en la conexión con el servidor." };
   }
 }
+
+export async function addVetRecord(horseId: string | number, payload: any) {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const cookieStore = await cookies();
+    const token = cookieStore.get('horse_trust_token')?.value;
+
+    if (!token) {
+      return { success: false, error: "No hay una sesión activa para realizar esta acción." };
+    }
+
+    const res = await fetch(`${apiUrl}/api/vet/${horseId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Error del backend en addVetRecord:", data);
+      throw new Error(data.error || data.message || "Error al guardar el registro veterinario");
+    }
+
+    revalidatePath('/dashboard');
+    revalidatePath(`/marketplace/${horseId}`);
+    
+    return { success: true, data };
+  } catch (error: any) {
+    console.error("Error crítico en addVetRecord:", error);
+    return { success: false, error: error.message };
+  }
+}
