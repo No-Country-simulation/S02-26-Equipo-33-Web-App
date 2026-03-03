@@ -72,3 +72,19 @@ export async function addVetRecord(horseId: string | number, payload: any) {
     return { success: false, error: error.message };
   }
 }
+
+export async function reconnectDatabase() {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const res = await fetch(`${apiUrl}/health/reconnect`, {
+      method: 'POST',
+    });
+    
+    const data = await res.json();
+    
+    if (!res.ok) throw new Error(data.message || "No se pudo despertar la base de datos.");
+    return { success: true, message: data.message || "Base de datos conectada." };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}

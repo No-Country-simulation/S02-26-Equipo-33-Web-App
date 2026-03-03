@@ -8,8 +8,7 @@ import {
 } from 'lucide-react';
 import HorseCard from '@/component/marketplace/HorseCard';
 import { useRouter } from 'next/navigation';
-// ATENCIÓN: Asegurate de exportar addVetRecord desde app/actions/horses
-import { createHorse, addVetRecord } from '@/app/actions/horses';
+import { createHorse, addVetRecord, reconnectDatabase } from '@/app/actions/horses';
 
 const uploadToCloudinary = async (file: File) => {
   const formData = new FormData();
@@ -33,7 +32,7 @@ const uploadToCloudinary = async (file: File) => {
 export default function RegistroCaballoPage() {
   const router = useRouter();
   
-  // 1. ESTADOS DEL FORMULARIO (Agregados Pedigree y Vet)
+  // ESTADOS DEL FORMULARIO 
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -110,14 +109,18 @@ export default function RegistroCaballoPage() {
     setIsSubmitting(true);
     
     try {
-      // 1. Subir imágenes a Cloudinary
+      // AUTO-RECONEXIÓN INVISIBLE 
+      console.log("Despertando base de datos...");
+      await reconnectDatabase(); 
+
+      // 1. subir imágenes a Cloudinary
       const uploadedUrls = [];
       for (const file of photos) {
         const url = await uploadToCloudinary(file);
         if (url) uploadedUrls.push(url);
       }
 
-      // 2. Payload del Caballo (Agregado Pedigree y estructura de Videos)
+      // 2. Payload del Caballo 
       const horsePayload = {
         name: formData.name,
         age: Number(formData.age),
@@ -139,10 +142,8 @@ export default function RegistroCaballoPage() {
 
       if (!result.success) throw new Error(result.error);
 
-      // 3. Obtener el ID del caballo recién creado (Oracle o Mongo format)
       const horseId = result.data?.ID || result.data?.id || result.data?._id;
 
-      // 4. Mandar la ficha médica si le pusieron fecha de revisión
       if (horseId && formData.reviewDate) {
         const vetPayload = {
           review_date: formData.reviewDate,
@@ -267,7 +268,7 @@ export default function RegistroCaballoPage() {
                 </div>
               </section>
 
-              {/* NUEVA: Sección 3: Historial Veterinario */}
+              {/* Sección 3: Historial Veterinario */}
               <section className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
                 <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
                   <div className="bg-red-50 p-2 rounded-lg text-red-500">
@@ -291,7 +292,7 @@ export default function RegistroCaballoPage() {
                   </div>
                 </div>
 
-                {/* Log de Vacunas Dinámico */}
+                {/* Log de Vacunas */}
                 <div className="space-y-4 pt-4 border-t border-slate-100">
                   <div className="flex justify-between items-center">
                     <label className="text-xs font-black uppercase tracking-widest text-slate-500">Registro de Vacunación</label>
