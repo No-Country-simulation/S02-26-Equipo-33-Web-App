@@ -7,7 +7,32 @@ import {
   CheckCircle, FileText, Activity, PlayCircle
 } from 'lucide-react';
 
+import { startConversation } from '@/app/actions/chat';
+import { useRouter } from 'next/navigation';
+
 export default function HorseDetailClient({ horse, vetRecord }: { horse: any, vetRecord: any }) {
+
+  const router = useRouter();
+
+  const handleContact = async () => {
+    const recipientId = horse.seller_id?.id || horse.seller_id?.ID || horse.seller_id?._id;
+    const horseId = horse.id || horse.ID || horse._id;
+
+    if (!recipientId || !horseId) {
+      console.error("DATOS INCOMPLETOS:", { recipientId, horseId, sellerObj: horse.seller_id });
+      alert("El backend no está mandando el ID del vendedor.");
+      return;
+    }
+
+    const result = await startConversation(Number(recipientId), Number(horseId));
+    
+    if (result.error) {
+      alert("Error del servidor: " + result.error);
+    } else if (result.id || result._id || result.ID) {
+      router.push(`/chat?id=${result.id || result._id || result.ID}`);
+    }
+  };
+
   const [activeImage, setActiveImage] = useState<string>(
     horse?.photos?.length > 0 ? horse.photos[0].url : ''
   );
@@ -234,7 +259,7 @@ export default function HorseDetailClient({ horse, vetRecord }: { horse: any, ve
                 </div>
 
                 <div className="space-y-3">
-                  <button className="w-full bg-equestrian-navy hover:bg-equestrian-navy/90 text-white font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wider text-sm">
+                  <button onClick={handleContact} className="w-full bg-equestrian-navy hover:bg-equestrian-navy/90 text-white font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wider text-sm">
                     <Mail className="w-5 h-5" /> Contactar Vendedor
                   </button>
                 </div>
@@ -242,7 +267,7 @@ export default function HorseDetailClient({ horse, vetRecord }: { horse: any, ve
 
               <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-equestrian-gold/20 flex-shrink-0 flex items-center justify-center text-equestrian-gold font-serif text-xl font-bold">
-                  {horse.seller_id?.full_name?.charAt(0) || "V"}
+                  {horse.seller_id?.full_name?.charAt(0) || "U"}
                 </div>
                 <div className="flex-grow">
                   <p className="text-xs font-black uppercase tracking-widest text-slate-400">Publicado por</p>
