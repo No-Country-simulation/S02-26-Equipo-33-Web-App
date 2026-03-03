@@ -19,6 +19,7 @@ export default async function RootLayout({
       <body>
         <Header initialIsLoggedIn={isLoggedIn}/>
         {children}
+        <Footer/>
       </body>
     </html>
   );
