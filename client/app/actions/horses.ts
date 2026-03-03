@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 
 export async function createHorse(horseData: any) {
   try {
@@ -25,6 +26,8 @@ export async function createHorse(horseData: any) {
     const data = await res.json();
 
     if (!res.ok) {
+      revalidatePath('/marketplace'); // Borra el cache del marketplace
+      revalidatePath('/dashboard');   // Borra el cache del dashboard
       return { success: false, error: data.error || data.message || "Error al publicar el caballo" };
     }
 
