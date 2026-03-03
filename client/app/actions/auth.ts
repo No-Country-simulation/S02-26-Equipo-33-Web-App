@@ -1,5 +1,6 @@
 "use server"; 
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 export async function loginUser(email: string, password: string) {
   try {
@@ -104,4 +105,10 @@ export async function verifySellerProfile(token: string, identityData: any) {
   } catch (error: any) {
     return { success: false, error: error.message || "Error interno del servidor" };
   }
+}
+
+export async function logout() {
+  const cookieStore = await cookies();
+  cookieStore.delete('horse_trust_token');
+  redirect('/'); 
 }
