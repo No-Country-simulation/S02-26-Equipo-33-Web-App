@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { apiFetch } from '../utils/apiFetch';
 
 export async function createHorse(horseData: any) {
   try {
@@ -12,9 +13,7 @@ export async function createHorse(horseData: any) {
       return { success: false, error: "No hay una sesión activa para realizar esta acción." };
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    
-    const res = await fetch(`${apiUrl}/horses`, {
+    const res = await apiFetch('/horses', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -26,11 +25,12 @@ export async function createHorse(horseData: any) {
     const data = await res.json();
 
     if (!res.ok) {
-      revalidatePath('/marketplace'); // Borra el cache del marketplace
-      revalidatePath('/dashboard');   // Borra el cache del dashboard
       return { success: false, error: data.error || data.message || "Error al publicar el caballo" };
     }
 
+    revalidatePath('/marketplace'); 
+    revalidatePath('/dashboard'); 
+    
     return { success: true, data };
   } catch (error) {
     return { success: false, error: "Error interno en la conexión con el servidor." };
@@ -39,7 +39,6 @@ export async function createHorse(horseData: any) {
 
 export async function addVetRecord(horseId: string | number, payload: any) {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     const cookieStore = await cookies();
     const token = cookieStore.get('horse_trust_token')?.value;
 
@@ -47,7 +46,7 @@ export async function addVetRecord(horseId: string | number, payload: any) {
       return { success: false, error: "No hay una sesión activa para realizar esta acción." };
     }
 
-    const res = await fetch(`${apiUrl}/api/vet/${horseId}`, {
+    const res = await apiFetch(`/vet/${horseId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -75,8 +74,7 @@ export async function addVetRecord(horseId: string | number, payload: any) {
 
 export async function reconnectDatabase() {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const res = await fetch(`${apiUrl}/health/reconnect`, {
+    const res = await apiFetch('/health/reconnect', {
       method: 'POST',
     });
     
