@@ -14,6 +14,7 @@ export default function ChatClient({ currentUser }: { currentUser: any }) {
     const [messages, setMessages] = useState<any[]>([]);   
     const [activeChatId, setActiveChatId] = useState<number | string | null>(null);
     const [newMessage, setNewMessage] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
     const [showMobileChat, setShowMobileChat] = useState(false);
 
     useEffect(() => {
@@ -68,8 +69,16 @@ export default function ChatClient({ currentUser }: { currentUser: any }) {
     return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
   };
 
+  const filteredConversations = conversations.filter(chat => {
+    const fullName = (chat.OTHER_USER || "").toLowerCase();
+    const horseName = (chat.HORSE_NAME || "").toLowerCase();
+    const search = searchTerm.toLowerCase();
+    
+    return fullName.includes(search) || horseName.includes(search);
+  });
+
   return (
-    <div className="flex h-screen bg-equestrian-sand font-sans overflow-hidden pt-16">
+    <div className="flex h-screen bg-equestrian-sand font-sans overflow-hidden">
       
       {/* ==========================================
           COLUMNA IZQUIERDA: LISTA DE CHATS
@@ -83,13 +92,15 @@ export default function ChatClient({ currentUser }: { currentUser: any }) {
             <input 
               type="text" 
               placeholder="Buscar conversaciones..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-equestrian-navy/20 transition-all"
             />
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {conversations.map((chat) => {
+          {filteredConversations.map((chat) => {
             const chatId = chat.ID;
             const fullName = chat.OTHER_USER || "Usuario Desconocido";
             const horseName = chat.HORSE_NAME || "Caballo consultado";
