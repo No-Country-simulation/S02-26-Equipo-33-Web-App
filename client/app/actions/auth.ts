@@ -1,12 +1,11 @@
 "use server"; 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { apiFetch } from '../utils/apiFetch';
 
 export async function loginUser(email: string, password: string) {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    
-    const res = await fetch(`${apiUrl}/auth/login`, {
+    const res = await apiFetch('/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -19,6 +18,7 @@ export async function loginUser(email: string, password: string) {
     if (!res.ok) {
       throw new Error(data.error || data.message || 'Error al validar credenciales');
     }
+    
     const cookieStore = await cookies();
     cookieStore.set('horse_trust_token', data.token, { 
       httpOnly: true, 
@@ -35,9 +35,7 @@ export async function loginUser(email: string, password: string) {
 
 export async function registerUser(userData: any) {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    
-    const res = await fetch(`${apiUrl}/auth/register`, {
+    const res = await apiFetch('/auth/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -73,12 +71,9 @@ export async function registerUser(userData: any) {
   }
 }
 
-
 export async function verifySellerProfile(token: string, identityData: any) {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    
-    const res = await fetch(`${apiUrl}/auth/seller-profile`, {
+    const res = await apiFetch('/auth/seller-profile', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
