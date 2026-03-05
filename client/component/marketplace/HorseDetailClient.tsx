@@ -7,29 +7,47 @@ import {
   CheckCircle, FileText, Activity, PlayCircle
 } from 'lucide-react';
 
-import { startConversation } from '@/app/actions/chat';
 import { useRouter } from 'next/navigation';
+import { startConversation, getVerifiedSellerIdForHorse } from '@/app/actions/chat';
 
 export default function HorseDetailClient({ horse, vetRecord }: { horse: any, vetRecord: any }) {
 
   const router = useRouter();
 
   const handleContact = async () => {
-    const recipientId = horse.seller_id?.id || horse.seller_id?.ID || horse.seller_id?._id;
-    const horseId = horse.id || horse.ID || horse._id;
+    const horseId = horse.ID || horse.id || horse._id;
+    let recipientId = horse.SELLER_ID || horse.seller_id?.id || horse.seller_id?.ID || horse.seller_id;
+    let sellerName = horse.SELLER_NAME || horse.seller_name || horse.seller_id?.full_name;
 
-    if (!recipientId || !horseId) {
-      console.error("DATOS INCOMPLETOS:", { recipientId, horseId, sellerObj: horse.seller_id });
-      alert("El backend no está mandando el ID del vendedor.");
+    if (recipientId && isNaN(Number(recipientId))) {
+      sellerName = sellerName || recipientId;
+      recipientId = null;
+    }
+    
+    if (!recipientId && sellerName) {
+      console.log(`Buscando a "${sellerName}" en el servidor...`);
+      const searchResult = await getVerifiedSellerIdForHorse(sellerName, Number(horseId));
+
+      if (searchResult.error) {
+        alert("Falló la búsqueda del vendedor. ");
+        return;
+      }
+
+      recipientId = searchResult.id;
+    }
+
+    if (!recipientId || isNaN(Number(recipientId))) {
+      alert("No se pudo iniciar el chat. El sistema no logra obtener un ID numérico.");
       return;
     }
 
     const result = await startConversation(Number(recipientId), Number(horseId));
     
     if (result.error) {
-      alert("Error del servidor: " + result.error);
-    } else if (result.id || result._id || result.ID) {
-      router.push(`/chat?id=${result.id || result._id || result.ID}`);
+      alert("Error al iniciar el chat: " + result.error);
+    } else {
+      const chatRoomId = result.id || result._id || result.ID || result.conversation_id;
+      router.push(chatRoomId ? `/chat?id=${chatRoomId}` : '/chat');
     }
   };
 

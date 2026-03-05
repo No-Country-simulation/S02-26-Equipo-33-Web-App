@@ -10,45 +10,38 @@ import { getConversations, getMessages, sendMessage } from '@/app/actions/chat';
 
 export default function ChatClient({ currentUser }: { currentUser: any }) {
   
-    // --- ESTADOS ---
     const [conversations, setConversations] = useState<any[]>([]);
     const [messages, setMessages] = useState<any[]>([]);   
-    const [activeChatId, setActiveChatId] = useState<string | null>(null);
+    const [activeChatId, setActiveChatId] = useState<number | string | null>(null);
     const [newMessage, setNewMessage] = useState("");
     const [showMobileChat, setShowMobileChat] = useState(false);
-    const [loading, setLoading] = useState(true);
 
-    // Cargar la lista de chats 
     useEffect(() => {
-    async function loadInitialData() {
+      async function loadInitialData() {
         const data = await getConversations();
-        setConversations(data);
-        if (data.length > 0) setActiveChatId(data[0]._id); // Selecciona el primero por defecto
-        setLoading(false);
-    }
-    loadInitialData();
+        setConversations(data || []); 
+        if (data && data.length > 0) {
+          setActiveChatId(data[0].ID); 
+        }
+      }
+      loadInitialData();
     }, []);
 
-    // Cargar mensajes cuando tocas un chat diferente
     useEffect(() => {
-    if (activeChatId) {
+      if (activeChatId) {
         async function loadMessages() {
-        const data = await getMessages(activeChatId!);
-        setMessages(data);
+          const data = await getMessages(activeChatId!.toString());
+          setMessages(data || []);
         }
         loadMessages();
-        const timer = setInterval(loadMessages, 5000);
+        const timer = setInterval(loadMessages, 5000); // Refresco cada 5 seg
         return () => clearInterval(timer);
-    }
+      }
     }, [activeChatId]);
 
-
-  // Derivados
-    const activeConversation = conversations.find(c => c._id === activeChatId);
+  const activeConversation = conversations.find(c => c.ID === activeChatId);
   
-
-  // --- HANDLERS ---
-  const handleSelectChat = (id: string) => {
+  const handleSelectChat = (id: number | string) => {
     setActiveChatId(id);
     setShowMobileChat(true);
   };
@@ -61,23 +54,28 @@ export default function ChatClient({ currentUser }: { currentUser: any }) {
     setNewMessage("");
 
     try {
-        await sendMessage(activeChatId, textToSend);
-        const updatedMessages = await getMessages(activeChatId);
-        setMessages(updatedMessages);
+        await sendMessage(activeChatId.toString(), textToSend);
+        const updatedMessages = await getMessages(activeChatId.toString());
+        setMessages(updatedMessages || []);
     } catch (error) {
         console.error("No se pudo enviar:", error);
     }
   };
 
+  const formatTime = (isoString: string) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
-    <div className="flex h-screen bg-equestrian-sand font-sans overflow-hidden pt-16"> {/* pt-16 para esquivar el header global si lo tuvieras */}
+    <div className="flex h-screen bg-equestrian-sand font-sans overflow-hidden pt-16">
       
       {/* ==========================================
           COLUMNA IZQUIERDA: LISTA DE CHATS
           ========================================== */}
       <aside className={`w-full md:w-[380px] flex flex-col bg-white border-r border-slate-200 ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
         
-        {/* Cabecera de la lista */}
         <div className="p-4 border-b border-slate-200 bg-slate-50">
           <h1 className="text-xl font-black text-equestrian-navy mb-4">Mensajes</h1>
           <div className="relative">
@@ -90,50 +88,42 @@ export default function ChatClient({ currentUser }: { currentUser: any }) {
           </div>
         </div>
 
-        {/* Lista de Conversaciones */}
         <div className="flex-1 overflow-y-auto">
-          {conversations.map((chat) => (
-            <button
-              key={chat._id}
-              onClick={() => handleSelectChat(chat._id)}
-              className={`w-full text-left flex gap-4 p-4 border-b border-slate-100 transition-colors hover:bg-slate-50 ${activeChatId === chat._id ? 'bg-equestrian-navy/5 border-l-4 border-l-equestrian-navy' : 'border-l-4 border-l-transparent'}`}
-            >
-              {/* Avatar con Fallback */}
-              <div className="relative shrink-0">
-                {chat.other_participant.profile_picture_url ? (
-                  <img 
-                    src={chat.other_participant.profile_picture_url} 
-                    alt={chat.other_participant.full_name} 
-                    className="w-12 h-12 rounded-full object-cover border border-slate-200" 
-                  />
-                ) : (
+          {conversations.map((chat) => {
+            const chatId = chat.ID;
+            const fullName = chat.OTHER_USER || "Usuario Desconocido";
+            const horseName = chat.HORSE_NAME || "Caballo consultado";
+            const lastUpdate = formatTime(chat.UPDATED_AT);
+            
+            return (
+              <button
+                key={chatId}
+                onClick={() => handleSelectChat(chatId)}
+                className={`w-full text-left flex gap-4 p-4 border-b border-slate-100 transition-colors hover:bg-slate-50 ${activeChatId === chatId ? 'bg-equestrian-navy/5 border-l-4 border-l-equestrian-navy' : 'border-l-4 border-l-transparent'}`}
+              >
+                <div className="relative shrink-0">
                   <div className="w-12 h-12 rounded-full bg-equestrian-gold/20 flex items-center justify-center text-equestrian-gold font-serif text-xl font-bold border border-equestrian-gold/30">
-                    {chat.other_participant.full_name.charAt(0)}
+                    {fullName.charAt(0).toUpperCase()}
                   </div>
-                )}
+                </div>
                 
-                {chat.unread_count > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 border-2 border-white rounded-full"></span>
-                )}
-              </div>
-              
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-baseline mb-1">
-                  <p className="text-slate-900 font-bold text-sm truncate">{chat.other_participant.full_name}</p>
-                  <p className={`text-xs whitespace-nowrap ml-2 ${chat.unread_count > 0 ? 'text-equestrian-navy font-bold' : 'text-slate-400'}`}>
-                    {chat.last_message.sent_at}
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-baseline mb-1">
+                    <p className="text-slate-900 font-bold text-sm truncate">{fullName}</p>
+                    <p className="text-xs whitespace-nowrap ml-2 text-slate-400">
+                      {lastUpdate}
+                    </p>
+                  </div>
+                  <p className="text-sm truncate text-slate-500">
+                    Ver mensajes...
+                  </p>
+                  <p className="text-xs text-equestrian-gold font-medium mt-1 truncate">
+                    Ref: {horseName}
                   </p>
                 </div>
-                <p className={`text-sm truncate ${chat.unread_count > 0 ? 'text-slate-900 font-bold' : 'text-slate-500'}`}>
-                  {chat.last_message.text}
-                </p>
-                <p className="text-xs text-equestrian-gold font-medium mt-1 truncate">
-                  Ref: {chat.horse_id.name}
-                </p>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       </aside>
 
@@ -142,117 +132,111 @@ export default function ChatClient({ currentUser }: { currentUser: any }) {
           ========================================== */}
       <main className={`flex-1 flex flex-col bg-[#f8f9fa] ${!showMobileChat ? 'hidden md:flex' : 'flex'}`}>
         
-        {activeConversation ? (
-          <>
-            {/* Cabecera del Chat */}
-            <header className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shadow-sm z-10">
-              <div className="flex items-center gap-4">
-                <button 
-                  onClick={() => setShowMobileChat(false)}
-                  className="md:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-lg"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <img 
-                  src={activeConversation.horse_id.mainPhoto} 
-                  alt="Caballo" 
-                  className="w-12 h-12 rounded-lg object-cover border border-slate-200"
-                />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-slate-900 font-bold">{activeConversation.other_participant.full_name}</h2>
-                    <span className="bg-equestrian-gold/20 text-equestrian-navy text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider">
-                      Interesado
-                    </span>
+        {activeConversation ? (() => {
+          const fullName = activeConversation.OTHER_USER || "Usuario";
+          const horseName = activeConversation.HORSE_NAME || "Caballo consultado";
+          const horseId = activeConversation.HORSE_ID;
+
+          return (
+            <>
+              <header className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shadow-sm z-10">
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setShowMobileChat(false)}
+                    className="md:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-lg"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  
+                  <div className="w-10 h-10 rounded-full bg-equestrian-navy text-white flex items-center justify-center font-bold">
+                    {fullName.charAt(0).toUpperCase()}
                   </div>
-                  <p className="text-xs font-bold text-slate-500">
-                    Consultando por <Link href={`/marketplace/${activeConversation.horse_id._id}`} className="text-equestrian-gold hover:underline">{activeConversation.horse_id.name}</Link>
-                  </p>
+
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-slate-900 font-bold">{fullName}</h2>
+                    </div>
+                    <p className="text-xs font-bold text-slate-500">
+                      Consultando por <Link href={`/marketplace/${horseId}`} className="text-equestrian-gold hover:underline">{horseName}</Link>
+                    </p>
+                  </div>
                 </div>
-              </div>
-              
-              <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
-                <MoreVertical className="w-5 h-5" />
-              </button>
-            </header>
+                
+                <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+              </header>
 
-            {/* Área de Mensajes */}
-            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
-              
-              <div className="flex justify-center mb-4">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-200/50 px-3 py-1 rounded-full">
-                  Hoy
-                </span>
-              </div>
+              <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 custom-scrollbar">
+                
+                {messages.map((msg) => {
+                  const msgId = msg.ID;
+                  const msgText = msg.CONTENT;
+                  const msgTime = formatTime(msg.SENT_AT);
+                  const isRead = msg.IS_READ === 1;
+                  
+                  const currentUserName = currentUser.full_name || currentUser.NAME || currentUser.name || "";
+                  const isMine = msg.SENDER_NAME === currentUserName || msg.SENDER_ID === (currentUser.ID || currentUser.id || currentUser._id);
 
-              {messages.map((msg) => {
-                const isMine = msg.sender_id === currentUser._id;
-                return (
-                  <div key={msg._id} className={`flex max-w-[80%] ${isMine ? 'self-end flex-row-reverse' : 'self-start'}`}>
-                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                      <div className={`p-3.5 shadow-sm text-sm ${
-                        isMine 
-                          ? 'bg-equestrian-navy text-white rounded-2xl rounded-tr-sm' 
-                          : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm'
-                      }`}>
-                        <p className="leading-relaxed">{msg.text}</p>
-                      </div>
-                      <div className="flex items-center gap-1 mt-1 px-1">
-                        <span className="text-[10px] text-slate-400 font-medium">{msg.sent_at}</span>
-                        {isMine && (
-                          msg.is_read ? <CheckCheck className="w-3 h-3 text-blue-500" /> : <Check className="w-3 h-3 text-slate-400" />
-                        )}
+                  return (
+                    <div key={msgId} className={`flex max-w-[80%] ${isMine ? 'self-end flex-row-reverse' : 'self-start'}`}>
+                      <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                        <div className={`p-3.5 shadow-sm text-sm ${
+                          isMine 
+                            ? 'bg-equestrian-navy text-white rounded-2xl rounded-tr-sm' 
+                            : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm'
+                        }`}>
+                          <p className="leading-relaxed">{msgText}</p>
+                        </div>
+                        <div className="flex items-center gap-1 mt-1 px-1">
+                          <span className="text-[10px] text-slate-400 font-medium">{msgTime}</span>
+                          {isMine && (
+                            isRead ? <CheckCheck className="w-3 h-3 text-blue-500" /> : <Check className="w-3 h-3 text-slate-400" />
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Input para Escribir */}
-            <div className="p-4 bg-white border-t border-slate-200">
-              <form onSubmit={handleSendMessage} className="flex items-end gap-2 bg-slate-50 border border-slate-200 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-equestrian-navy/20 transition-all">
-                <button type="button" className="p-2.5 text-slate-400 hover:text-equestrian-navy hover:bg-slate-200/50 rounded-xl transition-colors shrink-0">
-                  <Paperclip className="w-5 h-5" />
-                </button>
-                
-                <textarea 
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage(e);
-                    }
-                  }}
-                  placeholder="Escribí un mensaje..." 
-                  className="w-full bg-transparent border-none text-sm text-slate-800 focus:ring-0 p-2.5 resize-none max-h-32 custom-scrollbar placeholder:text-slate-400"
-                  rows={1}
-                />
-                
-                <div className="flex items-center gap-1 shrink-0 pb-1">
-                  <button type="button" className="p-2 text-slate-400 hover:text-equestrian-navy transition-colors hidden sm:block">
-                    <Smile className="w-5 h-5" />
-                  </button>
-                  <button 
-                    type="submit"
-                    disabled={!newMessage.trim()}
-                    className="bg-equestrian-gold hover:bg-equestrian-gold/90 disabled:bg-slate-200 disabled:text-slate-400 text-equestrian-navy p-2.5 rounded-xl transition-colors shadow-sm"
-                  >
-                    <Send className="w-5 h-5" />
-                  </button>
-                </div>
-              </form>
-              <div className="flex items-center justify-center gap-1 mt-3 text-slate-400">
-                <Info className="w-3 h-3" />
-                <p className="text-[10px] font-medium uppercase tracking-wider">
-                  Mantené las conversaciones dentro de HorseTrust por seguridad.
-                </p>
+                  );
+                })}
               </div>
-            </div>
-          </>
-        ) : (
-          /* Estado Vacío (Ningún chat seleccionado) */
+
+              <div className="p-4 bg-white border-t border-slate-200">
+                <form onSubmit={handleSendMessage} className="flex items-end gap-2 bg-slate-50 border border-slate-200 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-equestrian-navy/20 transition-all">
+                  <button type="button" className="p-2.5 text-slate-400 hover:text-equestrian-navy hover:bg-slate-200/50 rounded-xl transition-colors shrink-0">
+                    <Paperclip className="w-5 h-5" />
+                  </button>
+                  
+                  <textarea 
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage(e as any);
+                      }
+                    }}
+                    placeholder="Escribí un mensaje..." 
+                    className="w-full bg-transparent border-none text-sm text-slate-800 focus:ring-0 p-2.5 resize-none max-h-32 custom-scrollbar placeholder:text-slate-400"
+                    rows={1}
+                  />
+                  
+                  <div className="flex items-center gap-1 shrink-0 pb-1">
+                    <button type="button" className="p-2 text-slate-400 hover:text-equestrian-navy transition-colors hidden sm:block">
+                      <Smile className="w-5 h-5" />
+                    </button>
+                    <button 
+                      type="submit"
+                      disabled={!newMessage.trim()}
+                      className="bg-equestrian-gold hover:bg-equestrian-gold/90 disabled:bg-slate-200 disabled:text-slate-400 text-equestrian-navy p-2.5 rounded-xl transition-colors shadow-sm"
+                    >
+                      <Send className="w-5 h-5" />
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </>
+          );
+        })() : (
           <div className="flex-1 flex flex-col items-center justify-center bg-slate-50/50">
             <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100 mb-4">
               <Send className="w-8 h-8 text-slate-300" />
